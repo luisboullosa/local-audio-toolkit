@@ -1,0 +1,18 @@
+[project]
+name = "local-audio-toolkit"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "llm>=0.17",
+    "llm-ollama>=0.6.0",
+    "mlx-whisper>=0.3.0",
+    "openai>=1.53.0",
+    "typer>=0.13.0",
+    "yt-dlp>=2024.11.4",
+    "pvrecorder>=1.2.3",
+    "pvrecorderdemo>=1.2.3",
+    "rich>=13.9.4",
+    "python-ffmpeg>=2.0.12",
+]
