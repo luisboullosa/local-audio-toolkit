@@ -118,7 +118,9 @@ def transcribe_audio(speech_file: Path) -> str:
     with Live(spinner, refresh_per_second=10):
         result = mlx_whisper.transcribe(
             str(speech_file),
-            # FIX: `ValueError: [load_npz] Input must be a zip file or a file-like object that can be opened with zipfile.ZipFile`
+            # FIX: `ValueError: [load_npz] Input must be a zip file or
+            # a file-like object that can be opened with
+            # zipfile.ZipFile`
             # path_or_hf_repo="mlx-community/whisper-large-v3-turbo",
             path_or_hf_repo="mlx-community/whisper-turbo",
         )

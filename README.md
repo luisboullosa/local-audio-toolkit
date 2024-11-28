@@ -62,5 +62,5 @@ uv sync --dev --all-extras
 
 Tests can be run using pytest:
 ```bash
-uv run pytest
+uv run pytest --cov=src tests/
 ```
