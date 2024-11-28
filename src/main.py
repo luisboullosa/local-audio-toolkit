@@ -56,12 +56,14 @@ def download_from_youtube(url: str, audios_path: Path) -> Path:
             return mp3_path
 
 
-def record_audio(audios_path: Optional[Path], device_index: int = -1) -> Path:
+def record_audio(
+    audios_path: Optional[Path],
+    timestamp: int,
+    device_index: int = -1,
+) -> Path:
     recorder = PvRecorder(frame_length=512, device_index=device_index)
 
     recorder.start()
-
-    timestamp = int(time.time())
     temp_wav = audios_path / f"temp_{timestamp}.wav"
     final_mp3 = audios_path / f"recording_{timestamp}.mp3"
     wavfile = None
@@ -225,26 +227,38 @@ def summarise(
     transcripts_path.mkdir(exist_ok=True)
 
     audio_file = None
+    transcript_file = None
+
     if source.lower() == "record":
+        timestamp = int(time.time())
         audio_file = record_audio(
             audios_path=audios_path,
+            timestamp=timestamp,
             device_index=device_index,
         )
+        transcript_file = transcripts_path / f"recording_{timestamp}.txt"
         typer.echo(f"Audio recorded and saved to {audio_file}")
     elif is_youtube_url(source):
         audio_file = download_from_youtube(source, audios_path)
+        video_id = audio_file.stem
+        transcript_file = transcripts_path / f"youtube_{video_id}.txt"
         typer.echo(f"Audio downloaded from YouTube to {audio_file}")
     else:
         source_path = Path(source)
         try:
             audio_file = validate_local_file(source_path)
+            transcript_file = transcripts_path / f"path_{source_path.stem}.txt"
             typer.echo(f"Valid MP3 file: {audio_file}")
         except (FileNotFoundError, ValueError) as e:
             typer.echo(f"Error: {str(e)}", err=True)
             raise typer.Exit(1)
 
-    if audio_file:
+    if audio_file and transcript_file:
         transcribed_text = transcribe_audio(audio_file)
+
+        transcript_file.write_text(transcribed_text)
+        typer.echo(f"Transcript saved to {transcript_file}")
+
         summarise_audio(transcribed_text, profile)
 
 
