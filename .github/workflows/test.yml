@@ -1,0 +1,34 @@
+name: Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v4
+
+    - name: "Set up Python"
+      uses: actions/setup-python@v5
+      with:
+        python-version-file: "pyproject.toml"
+
+    - name: Install the project
+      run: uv sync --all-extras --dev
+
+    - name: Run static checks
+      run: uv tool run ruff check
+
+    - name: Run format checks
+      run: uv tool run ruff format --check
+
+    - name: Run tests
+      run: uv sync --dev --all-extras

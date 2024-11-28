@@ -3,7 +3,7 @@ name = "local-audio-toolkit"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.12"
 dependencies = [
     "llm>=0.17",
     "llm-ollama>=0.6.0",
@@ -15,6 +15,7 @@ dependencies = [
     "pvrecorderdemo>=1.2.3",
     "rich>=13.9.4",
     "python-ffmpeg>=2.0.12",
+    "torch==2.5.1",
 ]
 
 [project.optional-dependencies]
