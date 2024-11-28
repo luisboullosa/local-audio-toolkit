@@ -270,5 +270,67 @@ def list_devices():
         typer.echo(f"{i}: {device}")
 
 
+@app.command()
+def transcribe(
+    source: Optional[str] = typer.Argument(
+        None,
+        help="YouTube URL, path to local MP3 file, or 'record' for microphone recording",
+    ),
+    audios_path: Path = typer.Option(
+        Path("audios"),
+        "--audios",
+        "-a",
+        help="Directory to save the audio file",
+    ),
+    transcripts_path: Path = typer.Option(
+        Path("transcripts"),
+        "--transcripts",
+        "-t",
+        help="Directory to save the transcript file",
+    ),
+    device_index: int = typer.Option(
+        1,
+        "--device",
+        "-d",
+        help="Audio input device index",
+    ),
+):
+    """Transcribe audio from a source."""
+    audios_path.mkdir(exist_ok=True)
+    transcripts_path.mkdir(exist_ok=True)
+
+    audio_file = None
+    transcript_file = None
+
+    if source.lower() == "record":
+        timestamp = int(time.time())
+        audio_file = record_audio(
+            audios_path=audios_path,
+            timestamp=timestamp,
+            device_index=device_index,
+        )
+        transcript_file = transcripts_path / f"recording_{timestamp}.txt"
+        typer.echo(f"Audio recorded and saved to {audio_file}")
+    elif is_youtube_url(source):
+        audio_file = download_from_youtube(source, audios_path)
+        video_id = audio_file.stem
+        transcript_file = transcripts_path / f"youtube_{video_id}.txt"
+        typer.echo(f"Audio downloaded from YouTube to {audio_file}")
+    else:
+        source_path = Path(source)
+        try:
+            audio_file = validate_local_file(source_path)
+            transcript_file = transcripts_path / f"path_{source_path.stem}.txt"
+            typer.echo(f"Valid MP3 file: {audio_file}")
+        except (FileNotFoundError, ValueError) as e:
+            typer.echo(f"Error: {str(e)}", err=True)
+            raise typer.Exit(1)
+
+    if audio_file and transcript_file:
+        transcribed_text = transcribe_audio(audio_file)
+        transcript_file.write_text(transcribed_text)
+        typer.echo(f"Transcript saved to {transcript_file}")
+
+
 if __name__ == "__main__":
     app()
