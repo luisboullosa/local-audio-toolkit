@@ -213,6 +213,12 @@ def summarise(
         "-p",
         help="Specify a profile (e.g., 'software engineer writing PR description')",
     ),
+    device_index: int = typer.Option(
+        1,
+        "--device",
+        "-d",
+        help="Audio input device index",
+    ),
 ):
     """Summarise audio from a source."""
     audios_path.mkdir(exist_ok=True)
@@ -220,7 +226,10 @@ def summarise(
 
     audio_file = None
     if source.lower() == "record":
-        audio_file = record_audio(audios_path=audios_path, device_index=1)
+        audio_file = record_audio(
+            audios_path=audios_path,
+            device_index=device_index,
+        )
         typer.echo(f"Audio recorded and saved to {audio_file}")
     elif is_youtube_url(source):
         audio_file = download_from_youtube(source, audios_path)
