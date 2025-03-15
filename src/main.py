@@ -5,15 +5,19 @@ import wave
 from pathlib import Path
 from typing import Optional
 
-import mlx_whisper
+#import mlx_whisper
+#from pydub import AudioSegment
 import typer
-from ffmpeg import FFmpeg
+import ffmpeg
+import whisper ; model = whisper.load_model("base") 
 from openai import OpenAI
 from pvrecorder import PvRecorder
 from rich.console import Console
 from rich.live import Live
 from rich.spinner import Spinner
 from yt_dlp import YoutubeDL
+
+
 
 app = typer.Typer(help="Audio recording and processing tool")
 
@@ -27,7 +31,6 @@ def is_youtube_url(url: str) -> bool:
             "https://youtu.be/",
         )
     )
-
 
 def download_from_youtube(url: str, audios_path: Path) -> Path:
     """Download audio from a YouTube video."""
@@ -95,18 +98,23 @@ def record_audio(
     if wavfile is not None:
         wavfile.close()
 
-    ffmpeg = (
-        FFmpeg()
-        .option("y")
+    typer.echo(f"Converting {temp_wav.absolute()} to {final_mp3.absolute()}...")
+
+    (
+        ffmpeg
         .input(str(temp_wav))
         .output(
             str(final_mp3),
-            {"acodec": "libmp3lame"},
+            format="mp3",
         )
+        .run()
     )
 
-    typer.echo(f"Converting {temp_wav.absolute()} to {final_mp3.absolute()}...")
-    ffmpeg.execute()
+    
+    #audio = AudioSegment.from_wav(temp_wav)
+    #audio.export(final_mp3, format="mp3")
+
+    #ffmpeg.execute()
 
     os.remove(temp_wav)
 
@@ -116,14 +124,7 @@ def record_audio(
 def transcribe_audio(speech_file: Path) -> str:
     spinner = Spinner("dots", text="Transcribing audio...")
     with Live(spinner, refresh_per_second=10):
-        result = mlx_whisper.transcribe(
-            str(speech_file),
-            # FIX: `ValueError: [load_npz] Input must be a zip file or
-            # a file-like object that can be opened with
-            # zipfile.ZipFile`
-            # path_or_hf_repo="mlx-community/whisper-large-v3-turbo",
-            path_or_hf_repo="mlx-community/whisper-turbo",
-        )
+        result = model.transcribe(str(speech_file))
 
     # Show preview of first 100 characters
     console = Console()
